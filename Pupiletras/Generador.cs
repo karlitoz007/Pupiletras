@@ -5,7 +5,7 @@ using System.Linq;
 namespace CarlosRojas.Utilidades.Pupiletras
 {
     /// <summary>
-    /// Clase que permite generar pupiletras de NxN a partir de un listado de palabras
+    /// Clase utilitaria que permite generar pupiletras (sopa de letras) a partir de un listado de palabras, un tamaño y algunos otros parámetros
     /// </summary>
     public class Generador
     {
@@ -18,19 +18,6 @@ namespace CarlosRojas.Utilidades.Pupiletras
                 if (value >= 2)
                 {
                     _tamano = value;
-                }
-            }
-        }
-
-        private int _reintentosMax = 0;
-        public int ReintentosMax
-        {
-            get { return _reintentosMax; }
-            set
-            {
-                if (value >= 0)
-                {
-                    _reintentosMax = value;
                 }
             }
         }
@@ -59,10 +46,69 @@ namespace CarlosRojas.Utilidades.Pupiletras
             }
         }
 
+        private int _reintentosMax = 0;
+        public int ReintentosMax
+        {
+            get { return _reintentosMax; }
+            set
+            {
+                if (value >= 0)
+                {
+                    _reintentosMax = value;
+                }
+            }
+        }
+
         private int milisegundosMax = 100;
         private int milisegundosLimite = 5;
         private Random aleatorio = new Random(DateTime.Now.Millisecond);
         private char[,] pupiletras;
+
+        /// <summary>
+        /// Método que emplea el método generarPupiletras para generar un pupiletras y lo devuelve en una lista de caracteres
+        /// </summary>
+        /// <param name="tipo"></param>
+        /// <returns></returns>
+        public List<char> generarPupiletrasToList(int tipo = 1)
+        {
+            List<char> pupiletrasToList = new List<char>();
+            pupiletras = generarPupiletras(tipo);
+
+            if (pupiletras != null)
+                for (int i = 0; i < pupiletras.GetLength(0); i++)
+                {
+                    for (int j = 0; j < pupiletras.GetLength(1); j++)
+                    {
+                        pupiletrasToList.Add(pupiletras[i, j]);
+                    }
+                }
+
+            return pupiletrasToList;
+        }//generarPupiletrasToList
+
+        /// <summary>
+        /// Método que genera el pupiletras y lo devuelve en una matriz
+        /// </summary>
+        /// <param name="tipo">Tipo 1 (valor por defecto) genera el pupiletras completo. Tipo 0 genera pupiletras sin distractores</param>
+        /// <returns>Pupiletras generado (matriz de TamanoxTamano)</returns>
+        public char[,] generarPupiletras(int tipo = 1)
+        {
+            pupiletras = null;
+            if (estaValidadoPalabras())
+            {
+                int reintentos = 0;
+                do
+                {
+                    PalabrasExcluidas = new List<string>();
+                    generarPalabras();
+                    reintentos++;
+                } while (PalabrasExcluidas.Count > 0 && reintentos <= ReintentosMax);
+
+                completarMatriz(tipo);
+            }
+
+            return pupiletras;
+        }//generarPupiletras
 
         private void generarPalabras()
         {
@@ -195,47 +241,6 @@ namespace CarlosRojas.Utilidades.Pupiletras
             }
         }//generarPalabras
 
-        /// <summary>
-        /// Método que genera el pipiletras a partir de "Tamano" y "Palabras"
-        /// </summary>
-        /// <param name="tipo">Tipo 1 (valor por defecto) genera el pupiletras completo. Tipo 0 genera pupiletras sin distractores</param>
-        /// <returns>Pupiletras generado (matriz de TamanoxTamano)</returns>
-        public char[,] generarPupiletras(int tipo = 1)
-        {
-            pupiletras = null;
-            if (estaValidadoPalabras())
-            {
-                int reintentos = 0;
-                do
-                {
-                    PalabrasExcluidas = new List<string>();
-                    generarPalabras();
-                    reintentos++;
-                } while (PalabrasExcluidas.Count > 0 && reintentos <= ReintentosMax);
-
-                completarMatriz(tipo);
-            }
-
-            return pupiletras;
-        }//generarPupiletras
-
-        public List<char> generarPupiletrasToList(int tipo = 1)
-        {
-            List<char> pupiletrasToList = new List<char>();
-            pupiletras = generarPupiletras(tipo);
-
-            if (pupiletras != null)
-                for (int i = 0; i < pupiletras.GetLength(0); i++)
-                {
-                    for (int j = 0; j < pupiletras.GetLength(1); j++)
-                    {
-                        pupiletrasToList.Add(pupiletras[i, j]);
-                    }
-                }
-
-            return pupiletrasToList;
-        }//generarPupiletrasToList
-
         private bool estaValidadoPalabras()
         {
             bool esValido = true;
@@ -291,13 +296,9 @@ namespace CarlosRojas.Utilidades.Pupiletras
         {
             List<char> sentidos = new List<char>();
             if (SentidoDirecto)
-            {
                 sentidos.Add('D');
-            }
             if (SentidoInverso)
-            {
                 sentidos.Add('I');
-            }
 
             return sentidos[aleatorio.Next(0, sentidos.Count)];
         }//getSentidoAleatorio
@@ -459,7 +460,7 @@ namespace CarlosRojas.Utilidades.Pupiletras
 
         private static IEnumerable<string> ordenarPorLongitudDescendente(IEnumerable<string> palabras)
         {
-            //Uso de LINQ para ordenar el array de forma descendente y retornar una copia.
+            //Uso de LINQ para ordenar la colección de forma descendente y retornar una copia.
             var palabrasOrdenadas = from p in palabras
                                     orderby p.Length descending
                                     select p;
